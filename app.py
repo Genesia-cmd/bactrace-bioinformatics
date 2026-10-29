@@ -27,16 +27,44 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-.stApp { background: linear-gradient(180deg,#f5f9fb 0%,#ffffff 44%); }
-[data-testid="stSidebar"] { background:#102b3f; }
-[data-testid="stSidebar"] * { color:#f4f8fb !important; }
-.hero { padding:2rem 2.2rem; border-radius:20px; background:linear-gradient(120deg,#102b3f,#176b75); color:white; margin-bottom:1.3rem; }
-.hero h1 { color:white; margin:0; font-size:2.3rem; }
-.hero p { color:#e0f2f1; font-size:1.02rem; margin:.55rem 0 0; }
-.panel { padding:1rem 1.2rem; border:1px solid #dbe5ec; border-radius:14px; background:white; margin:.4rem 0 1rem; }
-.small-note { color:#526575; font-size:.9rem; }
-div[data-testid="stMetric"] { background:white; border:1px solid #dbe5ec; padding:.8rem; border-radius:12px; }
-.stButton button,.stDownloadButton button { border-radius:9px; font-weight:600; }
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+:root { --navy:#102a43; --teal:#087e8b; --mint:#d9f3ed; --ink:#172b3a; --muted:#617487; --line:#dce6ec; --paper:#f4f8fb; }
+html, body, [class*="css"] { font-family:'DM Sans',sans-serif; }
+.stApp { background: radial-gradient(circle at 92% 0%, #e1f4f1 0, transparent 24%), linear-gradient(180deg,#f4f8fb 0%,#ffffff 52%); color:var(--ink); }
+[data-testid="stHeader"] { background:rgba(244,248,251,.85); }
+[data-testid="stSidebar"] { background:linear-gradient(180deg,#0d2438 0%,#123b50 100%); border-right:1px solid #24475a; }
+[data-testid="stSidebar"] * { color:#edf7fa !important; }
+[data-testid="stSidebar"] [data-testid="stRadio"] label { padding:.42rem .55rem; border-radius:9px; }
+[data-testid="stSidebar"] [data-testid="stRadio"] label:hover { background:#1b4b5e; }
+[data-testid="stSidebar"] hr { border-color:#315567; }
+.block-container { padding-top:1.5rem; padding-bottom:3rem; max-width:1500px; }
+.hero { position:relative; overflow:hidden; padding:2.4rem 2.5rem; border-radius:24px; background:linear-gradient(115deg,#102a43 0%,#14566a 62%,#0a8990 100%); color:white; margin-bottom:1.35rem; box-shadow:0 18px 40px rgba(16,42,67,.16); }
+.hero:after { content:'DNA  /  ALIGN  /  COMPARE'; position:absolute; right:1.6rem; bottom:1.2rem; font-size:.68rem; letter-spacing:.19em; color:rgba(255,255,255,.48); font-weight:700; }
+.hero h1 { color:white; margin:0; font-family:'Space Grotesk',sans-serif; font-size:2.65rem; letter-spacing:-.045em; }
+.hero p { color:#d8f1f0; font-size:1.05rem; margin:.6rem 0 0; max-width:760px; }
+.eyebrow { text-transform:uppercase; letter-spacing:.16em; font-size:.72rem; font-weight:700; color:#79ded4; margin-bottom:.6rem; }
+.page-head { display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; padding:.2rem 0 1.05rem; margin-bottom:1.15rem; border-bottom:1px solid var(--line); }
+.page-head h1 { font-family:'Space Grotesk',sans-serif; color:var(--navy); letter-spacing:-.035em; margin:0; font-size:2rem; }
+.page-head p { color:var(--muted); margin:.35rem 0 0; font-size:.95rem; }
+.section-label { color:#087e8b; text-transform:uppercase; font-weight:700; letter-spacing:.12em; font-size:.72rem; }
+.panel { padding:1.15rem 1.25rem; border:1px solid var(--line); border-radius:16px; background:rgba(255,255,255,.92); margin:.4rem 0 1rem; box-shadow:0 5px 18px rgba(16,42,67,.035); }
+.workflow-card { min-height:150px; padding:1.2rem; border:1px solid var(--line); border-radius:16px; background:white; box-shadow:0 8px 22px rgba(16,42,67,.045); }
+.workflow-number { color:#087e8b; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:.82rem; letter-spacing:.12em; }
+.workflow-card h3 { font-family:'Space Grotesk',sans-serif; color:var(--navy); margin:.45rem 0 .25rem; font-size:1.05rem; }
+.workflow-card p { color:var(--muted); font-size:.88rem; margin:0; }
+.small-note { color:#617487; font-size:.86rem; }
+div[data-testid="stMetric"] { background:linear-gradient(145deg,#fff,#f7fbfc); border:1px solid var(--line); padding:1rem 1.05rem; border-radius:15px; box-shadow:0 5px 16px rgba(16,42,67,.035); }
+div[data-testid="stMetricLabel"] { color:#617487; font-weight:600; }
+div[data-testid="stMetricValue"] { color:#102a43; font-family:'Space Grotesk',sans-serif; }
+.stButton button,.stDownloadButton button { border-radius:10px; font-weight:700; min-height:2.65rem; border:1px solid #cddce4; }
+.stButton button[kind="primary"] { background:linear-gradient(100deg,#087e8b,#126a7d); border:0; }
+.stButton button[kind="primary"]:hover { background:#075e6b; }
+[data-testid="stDataFrame"] { border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+[data-testid="stFileUploader"] { background:#fff; border:1px dashed #a8c3ce; border-radius:15px; padding:.55rem; }
+.stTextArea textarea { border-radius:12px; border-color:#cbdbe3; background:#fbfdfe; font-family:ui-monospace,monospace; }
+.stAlert { border-radius:12px; }
+hr { border-color:var(--line); }
+@media (max-width: 700px) { .hero {padding:1.5rem;} .hero h1 {font-size:2rem;} .hero:after {display:none;} .page-head h1 {font-size:1.6rem;} }
 </style>
 """, unsafe_allow_html=True)
 
@@ -419,8 +447,7 @@ def create_pdf(analysis):
 
 # -------------------------------- Navigation ----------------------------------
 with st.sidebar:
-    st.markdown("## 🧬 BacTrace")
-    st.caption("Comparative 16S rRNA analysis")
+    st.markdown("<div style='padding:.55rem 0 1rem'><div style='font-size:.7rem;letter-spacing:.2em;color:#79ded4;font-weight:700'>BIOINFORMATICS WORKBENCH</div><div style='font-family:Space Grotesk,sans-serif;font-size:1.7rem;font-weight:700;color:white'>🧬 BacTrace</div><div style='font-size:.78rem;color:#b9d4dd'>Comparative sequence intelligence</div></div>", unsafe_allow_html=True)
     st.divider()
     page = st.radio("NAVIGATION", PAGES, key="page")
     st.divider()
@@ -433,16 +460,29 @@ with st.sidebar:
 
 a = st.session_state.analysis
 
+PAGE_DESCRIPTIONS = {
+    "Analysis Overview": "Dataset composition, sequence quality indicators and method transparency.",
+    "Sequence Alignment": "Inspect the aligned records and confirm the alignment engine used.",
+    "Conservation Analysis": "Locate conserved, variable and parsimony-informative alignment positions.",
+    "Similarity Explorer": "Compare pairwise identity alongside the number of comparable nucleotide positions.",
+    "Phylogenetic Analysis": "Explore a distance-based tree and export its Newick representation.",
+    "Report & Export": "Generate downloadable data products and a reproducible summary report.",
+}
+if page in PAGE_DESCRIPTIONS and a is not None:
+    st.markdown(f"<div class='page-head'><div><div class='section-label'>Bactrace / Analysis module</div><h1>{page}</h1><p>{PAGE_DESCRIPTIONS[page]}</p></div><div style='text-align:right;color:#617487;font-size:.78rem'>RUN TIMESTAMP<br><b style='color:#102a43'>{a['timestamp']}</b></div></div>", unsafe_allow_html=True)
+
 # -------------------------------- Page 1 --------------------------------------
 if page == "Home & Input":
     st.markdown("""
     <div class="hero">
-      <h1>🧬 BacTrace</h1>
-      <p>Comparative 16S rRNA sequence analysis, visualization and reporting.</p>
+      <div class="eyebrow">Sequence intelligence · Research workspace</div>
+      <h1>Trace the signal in your sequences.</h1>
+      <p>BacTrace transforms multi-FASTA input into an auditable comparative analysis: sequence quality, multiple alignment, conservation mapping, pairwise similarity, phylogenetic exploration and exportable reporting.</p>
     </div>
     """, unsafe_allow_html=True)
-    st.markdown("### Start a new analysis")
-    st.write("Upload a multi-FASTA file or paste nucleotide sequences. Analysis runs on the records supplied in this session.")
+    st.markdown("<div class='section-label'>01 / New analysis</div>", unsafe_allow_html=True)
+    st.markdown("### Bring your sequence dataset")
+    st.write("Upload a multi-FASTA file or paste nucleotide sequences. All metrics and visualisations are computed from the records supplied in this session.")
     col1, col2 = st.columns(2)
     with col1:
         upload = st.file_uploader("Upload FASTA", type=["fasta", "fa", "fna", "txt"])
@@ -464,15 +504,16 @@ if page == "Home & Input":
             st.rerun()
         except Exception as exc:
             st.error(str(exc))
-    st.markdown("### Workflow")
+    st.markdown("<div class='section-label'>02 / Analysis pipeline</div>", unsafe_allow_html=True)
+    st.markdown("### From raw sequences to interpretable evidence")
     cols = st.columns(4)
     for c, num, title, desc in zip(
-        cols, ["01", "02", "03", "04"],
-        ["Input", "Analyse", "Explore", "Export"],
-        ["Upload or paste FASTA", "Run calculations", "Review charts and tree", "Download data and PDF"]
+        cols, ["STAGE 01", "STAGE 02", "STAGE 03", "STAGE 04"],
+        ["Ingest & QC", "Align & quantify", "Compare & infer", "Report & export"],
+        ["Validate FASTA records, symbols and sequence composition.", "Generate an alignment and calculate conserved and variable positions.", "Explore pairwise identity, coverage-aware similarity and tree topology.", "Export transparent tables, aligned sequences, Newick and a PDF report."]
     ):
         with c:
-            st.markdown(f"<div class='panel'><h3>{num} · {title}</h3><p>{desc}</p></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='workflow-card'><div class='workflow-number'>{num}</div><h3>{title}</h3><p>{desc}</p></div>", unsafe_allow_html=True)
     st.warning("16S rRNA similarity alone may not reliably distinguish closely related Klebsiella species.")
 
 # --------------------------- Pages need analysis -------------------------------
@@ -482,13 +523,13 @@ elif a is None:
 
 # -------------------------------- Page 2 --------------------------------------
 elif page == "Analysis Overview":
-    st.title("Analysis Overview")
     st.caption("Metrics are calculated from the current input.")
     cols = st.columns(4)
     cols[0].metric("Sequences", len(a["records"]))
     cols[1].metric("Alignment columns", a["alignment"].get_alignment_length())
     cols[2].metric("Variable sites", a["cons_summary"]["Variable sites"])
     cols[3].metric("Pairwise comparisons", len(a["pairs"]))
+    st.markdown("<div class='section-label'>Dataset profile</div>", unsafe_allow_html=True)
     st.markdown("### Sequence statistics")
     st.dataframe(a["stats"], use_container_width=True, hide_index=True)
     st.markdown("### Methods used")
@@ -500,7 +541,6 @@ elif page == "Analysis Overview":
 
 # -------------------------------- Page 3 --------------------------------------
 elif page == "Sequence Alignment":
-    st.title("Sequence Alignment")
     st.write("**Method:** " + a["alignment_method"])
     st.write(f"**Alignment size:** {len(a['alignment'])} sequences × {a['alignment'].get_alignment_length()} columns")
     st.text_area("Aligned FASTA preview", a["aligned_fasta"], height=360)
@@ -513,7 +553,6 @@ elif page == "Sequence Alignment":
 
 # -------------------------------- Page 4 --------------------------------------
 elif page == "Conservation Analysis":
-    st.title("Conservation Analysis")
     s = a["cons_summary"]
     n = s["Alignment columns"]
     cols = st.columns(4)
@@ -526,8 +565,9 @@ elif page == "Conservation Analysis":
         "Count": [s["Fully conserved sites"], s["Variable sites"], s["Parsimony-informative sites"]],
     })
     fig = px.bar(chart, x="Category", y="Count", text="Count", title="Conserved and variable positions")
-    fig.update_layout(xaxis_title="", yaxis_title="Alignment columns", showlegend=False)
+    fig.update_layout(xaxis_title="", yaxis_title="Alignment columns", showlegend=False, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(family="DM Sans", color="#243b4a"), title_font=dict(family="Space Grotesk", size=18))
     st.plotly_chart(fig, use_container_width=True)
+    st.markdown("<div class='section-label'>Site-level evidence</div>", unsafe_allow_html=True)
     st.markdown("### Position-level results")
     st.dataframe(a["conservation"], use_container_width=True, hide_index=True)
     st.download_button("Download conservation CSV", a["conservation"].to_csv(index=False).encode(), "bactrace_conservation.csv", "text/csv")
@@ -535,7 +575,6 @@ elif page == "Conservation Analysis":
 
 # -------------------------------- Page 5 --------------------------------------
 elif page == "Similarity Explorer":
-    st.title("Similarity Explorer")
     pairs = a["pairs"]
     valid = pairs.dropna(subset=["Identity (%)"])
     cols = st.columns(3)
@@ -551,7 +590,7 @@ elif page == "Similarity Explorer":
         matrix.loc[rid, rid] = 100.0
     fig = px.imshow(matrix, text_auto=".2f", aspect="auto", color_continuous_scale="Teal",
                     title="Pairwise identity (%)", labels={"color": "Identity (%)"})
-    fig.update_layout(height=max(450, len(ids)*38))
+    fig.update_layout(height=max(450, len(ids)*38), paper_bgcolor="rgba(0,0,0,0)", font=dict(family="DM Sans", color="#243b4a"), title_font=dict(family="Space Grotesk", size=18))
     st.plotly_chart(fig, use_container_width=True)
     min_positions = st.slider("Minimum comparable positions", 0, max(1, int(valid["Comparable positions"].max()) if len(valid) else 1), 0, 10)
     st.dataframe(pairs[pairs["Comparable positions"] >= min_positions].sort_values("Identity (%)", ascending=False),
@@ -571,7 +610,6 @@ elif page == "Similarity Explorer":
 
 # -------------------------------- Page 6 --------------------------------------
 elif page == "Phylogenetic Analysis":
-    st.title("Phylogenetic Analysis")
     st.write("**Method:** " + a["tree_method"])
     try:
         st.plotly_chart(tree_figure(a["tree"]), use_container_width=True)
@@ -584,13 +622,13 @@ elif page == "Phylogenetic Analysis":
 
 # -------------------------------- Page 7 --------------------------------------
 elif page == "Report & Export":
-    st.title("Report & Export")
     st.write("Every file below is generated from the current analysis.")
     st.download_button("Sequence statistics CSV", a["stats"].to_csv(index=False).encode(), "bactrace_sequence_statistics.csv", "text/csv", use_container_width=True)
     st.download_button("Conservation analysis CSV", a["conservation"].to_csv(index=False).encode(), "bactrace_conservation.csv", "text/csv", use_container_width=True)
     st.download_button("Pairwise identity CSV", a["pairs"].to_csv(index=False).encode(), "bactrace_pairwise_identity.csv", "text/csv", use_container_width=True)
     st.download_button("Aligned FASTA", a["aligned_fasta"].encode(), "bactrace_aligned.fasta", "text/plain", use_container_width=True)
     st.download_button("Newick tree", a["newick"].encode(), "bactrace_tree.newick", "text/plain", use_container_width=True)
+    st.markdown("<div class='section-label'>Research deliverable</div>", unsafe_allow_html=True)
     st.markdown("### PDF report")
     try:
         pdf_bytes = create_pdf(a)
