@@ -2,278 +2,430 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 from Bio import SeqIO
 from io import StringIO
 
-# --------------------------------------------------
-# PAGE CONFIGURATION
-# --------------------------------------------------
+# ==================================================
+# BACTrace - PAGE CONFIGURATION
+# ==================================================
 
 st.set_page_config(
-    page_title="BacTrace | Bioinformatics Dashboard",
+    page_title="BacTrace | 16S rRNA Analysis",
     page_icon="🧬",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# --------------------------------------------------
-# CUSTOM PROFESSIONAL THEME
-# --------------------------------------------------
+# ==================================================
+# CUSTOM CSS
+# ==================================================
 
 st.markdown("""
 <style>
+
 .stApp {
-    background-color: #F4F7FB;
-    color: #172B4D;
+    background-color: #F5F8FC;
+    color: #18324B;
 }
 
-[data-testid="stSidebar"] {
-    background-color: #102A43;
+header[data-testid="stHeader"] {
+    background-color: #F5F8FC;
 }
 
-[data-testid="stSidebar"] * {
+.block-container {
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+    max-width: 1500px;
+}
+
+.main-header {
+    background: linear-gradient(110deg, #102A43, #087E8B);
+    padding: 30px 35px;
+    border-radius: 15px;
     color: white;
+    margin-bottom: 22px;
 }
 
-.main-title {
+.main-header h1 {
+    color: white;
     font-size: 34px;
+    margin: 0;
     font-weight: 800;
-    color: #12304A;
 }
 
-.subtitle {
+.main-header p {
+    color: #D9F3F1;
     font-size: 14px;
-    color: #627D98;
-    margin-bottom: 25px;
+    margin-top: 8px;
 }
 
 .metric-card {
-    background-color: white;
+    background: white;
+    border: 1px solid #E1E8EF;
+    border-radius: 13px;
     padding: 20px;
-    border-radius: 12px;
-    border: 1px solid #D9E2EC;
-    min-height: 115px;
+    min-height: 120px;
+    box-shadow: 0px 3px 12px rgba(16,42,67,0.04);
 }
 
 .metric-label {
-    color: #627D98;
     font-size: 13px;
+    color: #627D98;
+    font-weight: 500;
 }
 
 .metric-value {
     font-size: 27px;
-    font-weight: bold;
+    font-weight: 750;
     color: #087E8B;
-    margin-top: 8px;
+    margin-top: 10px;
 }
 
-.section-title {
-    color: #12304A;
+.section-heading {
     font-size: 21px;
     font-weight: 700;
+    color: #18324B;
     margin-top: 20px;
+    margin-bottom: 12px;
 }
 
-.stButton button {
-    background-color: #087E8B;
-    color: white;
-    border-radius: 8px;
-    border: none;
+.info-card {
+    background: white;
+    border: 1px solid #E1E8EF;
+    border-radius: 12px;
+    padding: 18px;
+    min-height: 115px;
+}
+
+.info-card h4 {
+    color: #087E8B;
+    margin-bottom: 8px;
+}
+
+.info-card p {
+    color: #627D98;
+    font-size: 13px;
+}
+
+div[data-testid="stTabs"] button {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+div[data-testid="stFileUploader"] {
+    background: white;
+    border-radius: 12px;
+}
+
+div[data-testid="stDataFrame"] {
+    border-radius: 10px;
+}
+
+.footer {
+    text-align: center;
+    color: #829AB1;
+    font-size: 12px;
+    padding: 20px;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 
-# --------------------------------------------------
-# HEADER
-# --------------------------------------------------
-
-st.markdown(
-    '<div class="main-title">🧬 BacTrace</div>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    '<div class="subtitle">'
-    'Comparative 16S rRNA Sequence Analysis and '
-    'Bacterial Identification Platform'
-    '</div>',
-    unsafe_allow_html=True
-)
-
-
-# --------------------------------------------------
-# SIDEBAR
-# --------------------------------------------------
-
-st.sidebar.title("🧬 BacTrace")
-st.sidebar.caption("Bioinformatics Analysis Platform")
-
-page = st.sidebar.radio(
-    "NAVIGATION",
-    [
-        "Dashboard",
-        "Sequence Input",
-        "Sequence Statistics",
-        "Alignment Analysis",
-        "Conservation Analysis",
-        "Similarity Explorer",
-        "Phylogenetic Analysis",
-        "Report & Export"
-    ]
-)
-
-st.sidebar.divider()
-
-st.sidebar.info(
-    "Upload bacterial nucleotide sequences "
-    "in FASTA format to begin analysis."
-)
-
-
-# --------------------------------------------------
-# FASTA INPUT
-# --------------------------------------------------
+# ==================================================
+# SESSION STATE
+# ==================================================
 
 if "records" not in st.session_state:
     st.session_state.records = []
 
-if page == "Sequence Input":
+if "active_page" not in st.session_state:
+    st.session_state.active_page = "Dashboard"
 
-    st.markdown("## Sequence Input")
 
-    uploaded_file = st.file_uploader(
-        "Upload FASTA File",
-        type=["fasta", "fa", "fna", "txt"]
+# ==================================================
+# HEADER
+# ==================================================
+
+st.markdown("""
+<div class="main-header">
+    <h1>🧬 BacTrace</h1>
+    <p>
+    Comparative 16S rRNA Sequence Analysis and
+    Bacterial Identification Platform
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
+
+# ==================================================
+# TOP NAVIGATION
+# ==================================================
+
+pages = [
+    "Dashboard",
+    "Sequence Input",
+    "Statistics",
+    "Alignment",
+    "Conservation",
+    "Similarity",
+    "Phylogeny",
+    "Reports"
+]
+
+selected_page = st.radio(
+    "Navigation",
+    pages,
+    horizontal=True,
+    label_visibility="collapsed",
+    key="navigation"
+)
+
+st.session_state.active_page = selected_page
+
+st.divider()
+
+
+# ==================================================
+# FASTA INPUT FUNCTION
+# ==================================================
+
+def load_fasta(content):
+
+    records = list(
+        SeqIO.parse(StringIO(content), "fasta")
     )
 
-    pasted_sequence = st.text_area(
-        "Or paste FASTA sequences here",
-        height=200,
+    valid_records = []
+
+    for record in records:
+
+        sequence = str(record.seq).upper()
+
+        if not sequence:
+            continue
+
+        if not set(sequence).issubset(set("ACGTN")):
+            continue
+
+        valid_records.append(record)
+
+    return valid_records
+
+
+# ==================================================
+# SEQUENCE STATISTICS FUNCTION
+# ==================================================
+
+def calculate_statistics(records):
+
+    data = []
+
+    for record in records:
+
+        seq = str(record.seq).upper()
+
+        a = seq.count("A")
+        t = seq.count("T")
+        g = seq.count("G")
+        c = seq.count("C")
+        n = seq.count("N")
+
+        length = len(seq)
+
+        valid_bases = a + t + g + c
+
+        gc = (
+            (g + c) / valid_bases * 100
+            if valid_bases else 0
+        )
+
+        data.append({
+            "Sequence ID": record.id,
+            "Length (bp)": length,
+            "GC Content (%)": round(gc, 2),
+            "A": a,
+            "T": t,
+            "G": g,
+            "C": c,
+            "N": n
+        })
+
+    return pd.DataFrame(data)
+
+
+# ==================================================
+# SEQUENCE INPUT PAGE
+# ==================================================
+
+if selected_page == "Sequence Input":
+
+    st.markdown(
+        '<div class="section-heading">Sequence Input</div>',
+        unsafe_allow_html=True
+    )
+
+    st.write(
+        "Upload or paste bacterial 16S rRNA nucleotide "
+        "sequences in FASTA format."
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        uploaded_file = st.file_uploader(
+            "Upload FASTA file",
+            type=["fasta", "fa", "fna", "txt"]
+        )
+
+    with col2:
+
+        st.info(
+            "Supported formats: FASTA (.fasta, .fa, .fna, .txt)"
+        )
+
+    pasted = st.text_area(
+        "Or paste FASTA sequence",
+        height=180,
         placeholder=">Sequence_1\nATGCGT..."
     )
 
-    if st.button("Process Sequences"):
-
-        records = []
+    if st.button("Process Sequences", type="primary"):
 
         try:
+
             if uploaded_file is not None:
+
                 content = uploaded_file.getvalue().decode("utf-8")
+
             else:
-                content = pasted_sequence
+
+                content = pasted
 
             if not content.strip():
-                st.error("Please upload or paste a FASTA sequence.")
-            else:
-                records = list(
-                    SeqIO.parse(StringIO(content), "fasta")
-                )
 
-                if not records:
-                    st.error("No valid FASTA records found.")
+                st.error("Please provide sequence data.")
+
+            else:
+
+                new_records = load_fasta(content)
+
+                if not new_records:
+
+                    st.error(
+                        "No valid nucleotide FASTA records found. "
+                        "Check the headers and nucleotide symbols."
+                    )
 
                 else:
-                    valid_records = []
 
-                    for record in records:
-                        seq = str(record.seq).upper()
+                    st.session_state.records = new_records
 
-                        if not seq:
-                            continue
+                    st.success(
+                        f"{len(new_records)} sequences loaded successfully."
+                    )
 
-                        if not set(seq).issubset(set("ACGTN")):
-                            st.warning(
-                                f"Skipped {record.id}: "
-                                "contains unsupported nucleotide symbols."
-                            )
-                            continue
+        except Exception as error:
 
-                        valid_records.append(record)
-
-                    if valid_records:
-                        st.session_state.records = valid_records
-                        st.success(
-                            f"{len(valid_records)} sequences processed successfully."
-                        )
-                    else:
-                        st.error("No valid nucleotide sequences available.")
-
-        except Exception as e:
-            st.error(f"Error processing FASTA file: {e}")
+            st.error(f"Sequence processing error: {error}")
 
 
-# --------------------------------------------------
-# CALCULATE REAL SEQUENCE STATISTICS
-# --------------------------------------------------
+# ==================================================
+# COMMON DATA
+# ==================================================
 
 records = st.session_state.records
 
-stats_data = []
+if records:
 
-for record in records:
+    stats_df = calculate_statistics(records)
 
-    seq = str(record.seq).upper()
+else:
 
-    length = len(seq)
+    stats_df = pd.DataFrame()
 
-    gc_count = seq.count("G") + seq.count("C")
 
-    atgc_count = sum(seq.count(base) for base in "ATGC")
+# ==================================================
+# DASHBOARD PAGE
+# ==================================================
 
-    gc_content = (
-        gc_count / atgc_count * 100
-        if atgc_count > 0 else 0
+if selected_page == "Dashboard":
+
+    st.markdown(
+        '<div class="section-heading">Analysis Overview</div>',
+        unsafe_allow_html=True
     )
-
-    stats_data.append({
-        "Sequence": record.id,
-        "Length": length,
-        "GC_Content": round(gc_content, 2),
-        "A": seq.count("A"),
-        "T": seq.count("T"),
-        "G": seq.count("G"),
-        "C": seq.count("C"),
-        "N": seq.count("N")
-    })
-
-stats_df = pd.DataFrame(stats_data)
-
-
-# --------------------------------------------------
-# DASHBOARD
-# --------------------------------------------------
-
-if page == "Dashboard":
-
-    st.markdown("## Analysis Overview")
 
     if stats_df.empty:
 
         st.info(
-            "No sequence data available. "
-            "Go to Sequence Input and upload a FASTA file."
+            "No sequences uploaded yet. Open the Sequence Input "
+            "tab to upload your bacterial FASTA data."
         )
+
+        st.markdown("### Platform Modules")
+
+        modules = [
+            ("Sequence Statistics",
+             "Length, nucleotide composition and GC content."),
+            ("Multiple Alignment",
+             "Compare nucleotide sequences across samples."),
+            ("Conservation Analysis",
+             "Identify conserved and variable nucleotide positions."),
+            ("Similarity Explorer",
+             "Explore pairwise sequence similarity."),
+            ("Phylogenetic Analysis",
+             "Investigate preliminary evolutionary relationships."),
+            ("Report Generation",
+             "Export sequence analysis results.")
+        ]
+
+        cols = st.columns(3)
+
+        for i, (title, description) in enumerate(modules):
+
+            with cols[i % 3]:
+
+                st.markdown(f"""
+                <div class="info-card">
+                    <h4>{title}</h4>
+                    <p>{description}</p>
+                </div>
+                """, unsafe_allow_html=True)
 
     else:
 
         total_sequences = len(stats_df)
-        total_bases = int(stats_df["Length"].sum())
-        avg_length = stats_df["Length"].mean()
-        avg_gc = stats_df["GC_Content"].mean()
+
+        total_bases = int(
+            stats_df["Length (bp)"].sum()
+        )
+
+        average_length = stats_df["Length (bp)"].mean()
+
+        average_gc = stats_df["GC Content (%)"].mean()
+
+        st.caption(
+            f"Loaded dataset: {total_sequences} valid sequences"
+        )
+
+        # METRIC CARDS
 
         c1, c2, c3, c4 = st.columns(4)
 
         metrics = [
             (c1, "Total Sequences", total_sequences),
             (c2, "Total Nucleotides", f"{total_bases:,}"),
-            (c3, "Average Length", f"{avg_length:,.0f} bp"),
-            (c4, "Average GC Content", f"{avg_gc:.2f}%")
+            (c3, "Average Length", f"{average_length:,.0f} bp"),
+            (c4, "Average GC Content", f"{average_gc:.2f}%")
         ]
 
         for col, label, value in metrics:
+
             with col:
+
                 st.markdown(f"""
                 <div class="metric-card">
                     <div class="metric-label">{label}</div>
@@ -282,51 +434,88 @@ if page == "Dashboard":
                 """, unsafe_allow_html=True)
 
         st.markdown(
-            '<div class="section-title">Sequence Analysis</div>',
+            '<div class="section-heading">Sequence Data Visualization</div>',
             unsafe_allow_html=True
         )
 
-        left, right = st.columns(2)
+        chart1, chart2 = st.columns(2)
 
-        with left:
+        with chart1:
 
             fig = px.bar(
                 stats_df,
-                x="Sequence",
-                y="Length",
+                x="Sequence ID",
+                y="Length (bp)",
                 title="Sequence Length Comparison",
-                labels={
-                    "Length": "Length (bp)",
-                    "Sequence": "Sequence ID"
-                }
+                color="Length (bp)",
+                color_continuous_scale="Teal"
             )
 
             fig.update_layout(
                 plot_bgcolor="white",
-                paper_bgcolor="white"
+                paper_bgcolor="white",
+                coloraxis_showscale=False
             )
 
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(
+                fig,
+                use_container_width=True
+            )
 
-        with right:
+        with chart2:
 
             fig = px.bar(
                 stats_df,
-                x="Sequence",
-                y="GC_Content",
+                x="Sequence ID",
+                y="GC Content (%)",
                 title="GC Content Distribution",
-                labels={
-                    "GC_Content": "GC Content (%)",
-                    "Sequence": "Sequence ID"
-                }
+                color="GC Content (%)",
+                color_continuous_scale="Teal"
             )
 
             fig.update_layout(
                 plot_bgcolor="white",
-                paper_bgcolor="white"
+                paper_bgcolor="white",
+                coloraxis_showscale=False
             )
 
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(
+                fig,
+                use_container_width=True
+            )
+
+        st.markdown(
+            '<div class="section-heading">Nucleotide Composition</div>',
+            unsafe_allow_html=True
+        )
+
+        total_a = int(stats_df["A"].sum())
+        total_t = int(stats_df["T"].sum())
+        total_g = int(stats_df["G"].sum())
+        total_c = int(stats_df["C"].sum())
+
+        composition_df = pd.DataFrame({
+            "Nucleotide": ["A", "T", "G", "C"],
+            "Count": [
+                total_a,
+                total_t,
+                total_g,
+                total_c
+            ]
+        })
+
+        fig = px.pie(
+            composition_df,
+            names="Nucleotide",
+            values="Count",
+            hole=0.55,
+            title="Overall Nucleotide Composition"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
 
         st.markdown("### Uploaded Sequence Summary")
 
@@ -337,166 +526,189 @@ if page == "Dashboard":
         )
 
 
-# --------------------------------------------------
-# SEQUENCE STATISTICS
-# --------------------------------------------------
+# ==================================================
+# STATISTICS PAGE
+# ==================================================
 
-elif page == "Sequence Statistics":
+elif selected_page == "Statistics":
 
-    st.header("Sequence Statistics")
+    st.title("Sequence Statistics")
 
     if stats_df.empty:
-        st.warning("Upload sequences first.")
+
+        st.warning("Upload FASTA sequences first.")
 
     else:
-        st.dataframe(stats_df, use_container_width=True)
 
-        st.markdown("### Nucleotide Composition")
+        st.dataframe(
+            stats_df,
+            use_container_width=True,
+            hide_index=True
+        )
 
-        composition = {
+        st.markdown("### Individual Sequence Composition")
+
+        selected_sequence = st.selectbox(
+            "Select sequence",
+            stats_df["Sequence ID"].tolist()
+        )
+
+        row = stats_df[
+            stats_df["Sequence ID"] == selected_sequence
+        ].iloc[0]
+
+        nucleotide_df = pd.DataFrame({
             "Nucleotide": ["A", "T", "G", "C"],
             "Count": [
-                int(stats_df["A"].sum()),
-                int(stats_df["T"].sum()),
-                int(stats_df["G"].sum()),
-                int(stats_df["C"].sum())
+                row["A"],
+                row["T"],
+                row["G"],
+                row["C"]
             ]
-        }
+        })
 
-        composition_df = pd.DataFrame(composition)
-
-        fig = px.pie(
-            composition_df,
-            names="Nucleotide",
-            values="Count",
-            title="Overall Nucleotide Composition"
+        fig = px.bar(
+            nucleotide_df,
+            x="Nucleotide",
+            y="Count",
+            title=f"Nucleotide Composition: {selected_sequence}"
         )
 
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
 
 
-# --------------------------------------------------
-# ALIGNMENT ANALYSIS
-# --------------------------------------------------
+# ==================================================
+# ALIGNMENT PAGE
+# ==================================================
 
-elif page == "Alignment Analysis":
+elif selected_page == "Alignment":
 
-    st.header("Sequence Alignment Analysis")
-
-    st.info(
-        "This section is reserved for the multiple sequence "
-        "alignment output generated by the BacTrace alignment module."
-    )
+    st.title("Multiple Sequence Alignment")
 
     st.write(
-        "Alignment algorithms: MAFFT or a documented "
-        "educational fallback."
+        "Alignment analysis compares nucleotide positions "
+        "across the uploaded 16S rRNA sequences."
     )
-
-
-# --------------------------------------------------
-# CONSERVATION ANALYSIS
-# --------------------------------------------------
-
-elif page == "Conservation Analysis":
-
-    st.header("Conservation Analysis")
 
     st.info(
-        "This section displays nucleotide conservation "
-        "across aligned sequences."
+        "Connect this section to the MAFFT or Biopython "
+        "alignment function in your full BacTrace application."
     )
+
+
+# ==================================================
+# CONSERVATION PAGE
+# ==================================================
+
+elif selected_page == "Conservation":
+
+    st.title("Conservation Analysis")
 
     st.write(
-        "Conservation analysis requires multiple sequence "
-        "alignment before calculating conserved positions."
+        "Conservation analysis identifies nucleotide positions "
+        "that remain similar or vary among aligned sequences."
     )
-
-
-# --------------------------------------------------
-# SIMILARITY EXPLORER
-# --------------------------------------------------
-
-elif page == "Similarity Explorer":
-
-    st.header("Similarity Explorer")
 
     st.info(
-        "Pairwise sequence similarity analysis will be "
-        "displayed here using the BacTrace comparison module."
+        "Conservation scores require aligned sequence data."
     )
 
 
-# --------------------------------------------------
-# PHYLOGENETIC ANALYSIS
-# --------------------------------------------------
+# ==================================================
+# SIMILARITY PAGE
+# ==================================================
 
-elif page == "Phylogenetic Analysis":
+elif selected_page == "Similarity":
 
-    st.header("Phylogenetic Analysis")
-
-    st.info(
-        "Phylogenetic tree generation requires aligned "
-        "sequences and an appropriate distance matrix."
-    )
+    st.title("Pairwise Similarity Explorer")
 
     st.write(
-        "Neighbor-Joining can be used for preliminary "
-        "educational phylogenetic analysis."
+        "Compare sequence pairs to investigate nucleotide "
+        "identity and sequence similarity."
+    )
+
+    st.info(
+        "Connect this section to the pairwise identity "
+        "calculation from your BacTrace analysis module."
     )
 
 
-# --------------------------------------------------
-# REPORT AND EXPORT
-# --------------------------------------------------
+# ==================================================
+# PHYLOGENY PAGE
+# ==================================================
 
-elif page == "Report & Export":
+elif selected_page == "Phylogeny":
 
-    st.header("Report & Export")
+    st.title("Phylogenetic Analysis")
+
+    st.write(
+        "Phylogenetic analysis provides a preliminary view "
+        "of evolutionary relationships among bacterial sequences."
+    )
+
+    st.info(
+        "Connect this section to the Neighbor-Joining "
+        "or IQ-TREE analysis module."
+    )
+
+
+# ==================================================
+# REPORT PAGE
+# ==================================================
+
+elif selected_page == "Reports":
+
+    st.title("Reports & Export")
 
     if stats_df.empty:
 
-        st.warning("No sequence data available for export.")
+        st.warning("Upload sequences before generating reports.")
 
     else:
 
-        csv = stats_df.to_csv(index=False).encode("utf-8")
+        st.success("Sequence statistics are ready for export.")
+
+        csv_data = stats_df.to_csv(
+            index=False
+        ).encode("utf-8")
 
         st.download_button(
-            "Download Sequence Statistics (CSV)",
-            data=csv,
-            file_name="BacTrace_Sequence_Statistics.csv",
-            mime="text/csv"
+            "Download Statistics CSV",
+            data=csv_data,
+            file_name="BacTrace_Statistics.csv",
+            mime="text/csv",
+            type="primary"
         )
 
-        fasta_output = ""
+        fasta_text = ""
 
         for record in records:
-            fasta_output += (
+
+            fasta_text += (
                 f">{record.id}\n{str(record.seq)}\n"
             )
 
         st.download_button(
-            "Download FASTA Sequences",
-            data=fasta_output,
+            "Download FASTA Dataset",
+            data=fasta_text,
             file_name="BacTrace_Sequences.fasta",
             mime="text/plain"
         )
 
 
-# --------------------------------------------------
+# ==================================================
 # FOOTER
-# --------------------------------------------------
+# ==================================================
 
 st.divider()
 
-st.caption(
-    "BacTrace | Comparative 16S rRNA Sequence Analysis "
-    "| Academic Bioinformatics Project"
-)
-
-st.caption(
-    "Disclaimer: 16S rRNA sequence similarity provides "
-    "preliminary taxonomic evidence and does not independently "
-    "confirm bacterial species identity."
-)
+st.markdown("""
+<div class="footer">
+BacTrace | Comparative 16S rRNA Sequence Analysis Platform<br>
+Academic Bioinformatics Project<br>
+16S rRNA similarity alone does not establish definitive species identity.
+</div>
+""", unsafe_allow_html=True)
